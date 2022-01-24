@@ -28,8 +28,14 @@
  *      .catch((error) => console.log(error.message)) // 'Error: Wrong parameter is passed!
  *                                                    //  Ask her again.';
  */
-function willYouMarryMe(/* isPositiveAnswer */) {
-  throw new Error('Not implemented');
+function willYouMarryMe(isPositiveAnswer) {
+  return new Promise((res) => {
+    if (typeof isPositiveAnswer === 'boolean') {
+      if (isPositiveAnswer) res('Hooray!!! She said "Yes"!');
+      else res('Oh no, she said "No".');
+    }
+    throw Error('Wrong parameter is passed! Ask her again.');
+  });
 }
 
 
@@ -48,8 +54,8 @@ function willYouMarryMe(/* isPositiveAnswer */) {
  *    })
  *
  */
-function processAllPromises(/* array */) {
-  throw new Error('Not implemented');
+function processAllPromises(array) {
+  return Promise.all(array);
 }
 
 /**
@@ -71,8 +77,8 @@ function processAllPromises(/* array */) {
  *    })
  *
  */
-function getFastestPromise(/* array */) {
-  throw new Error('Not implemented');
+function getFastestPromise(array) {
+  return Promise.race(array);
 }
 
 /**
@@ -92,9 +98,36 @@ function getFastestPromise(/* array */) {
  *    });
  *
  */
-function chainPromises(/* array, action */) {
-  throw new Error('Not implemented');
+function chainPromises(array, action) {
+  const recursion = (arr) => {
+    const a = [...arr];
+    return new Promise((resault) => {
+      const p = a.shift();
+      // console.log(p);
+      if (!a.length) {
+        p.then(
+          (res) => resault(res),
+          () => resault(undefined),
+        );
+      } else {
+        const fnRet = (res) => {
+          if (res !== undefined) recursion(a).then((r) => resault(action(res, r)));
+          else recursion(a).then((r) => resault(r));
+        };
+        p.then(
+          (res) => {
+            fnRet(res);
+          },
+          () => {
+            fnRet();
+          },
+        );
+      }
+    });
+  };
+  return recursion(array);
 }
+
 
 module.exports = {
   willYouMarryMe,

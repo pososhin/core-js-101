@@ -20,10 +20,16 @@
  *    console.log(r.height);      // => 20
  *    console.log(r.getArea());   // => 200
  */
-function Rectangle(/* width, height */) {
-  throw new Error('Not implemented');
-}
+class Rectangle {
+  constructor(width, height) {
+    this.width = width;
+    this.height = height;
+  }
 
+  getArea() {
+    return this.width * this.height;
+  }
+}
 
 /**
  * Returns the JSON representation of specified object
@@ -35,8 +41,8 @@ function Rectangle(/* width, height */) {
  *    [1,2,3]   =>  '[1,2,3]'
  *    { width: 10, height : 20 } => '{"height":10,"width":20}'
  */
-function getJSON(/* obj */) {
-  throw new Error('Not implemented');
+function getJSON(obj) {
+  return JSON.stringify(obj);
 }
 
 
@@ -51,8 +57,13 @@ function getJSON(/* obj */) {
  *    const r = fromJSON(Circle.prototype, '{"radius":10}');
  *
  */
-function fromJSON(/* proto, json */) {
-  throw new Error('Not implemented');
+function fromJSON(proto, json) {
+  function Obj() {
+    const o = JSON.parse(json);
+    Object.keys(o).forEach((key) => { this[key] = o[key]; });
+  }
+  Obj.prototype = proto;
+  return new Obj();
 }
 
 
@@ -111,35 +122,66 @@ function fromJSON(/* proto, json */) {
  */
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  str: [],
+  bin: ['', '#', '.', '[', ':', '::'],
+
+  fn_add(element, prefix = '', sufix = '') {
+    const b = { ...cssSelectorBuilder };
+    b.ids = { ...this.ids };
+    if (typeof element === 'string') {
+      const index = this.bin.indexOf(prefix);
+      if (index >= 0) {
+        this.str.find((x) => {
+          if (this.bin.indexOf(x.pre) === index && (index === 0 || index === 1 || index === 5)) {
+            throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+          }
+          if (this.bin.indexOf(x.pre) > index) {
+            throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+          }
+          return undefined;
+        });
+      }
+      b.str = [...this.str, { e: element, pre: prefix, suf: sufix }].flat();
+    } else {
+      b.str = [...this.str, ...element].flat();
+    }
+    return b;
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  element(value) {
+    return this.fn_add(value);
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    return this.fn_add(value, '#');
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    return this.fn_add(value, '.');
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    return this.fn_add(value, '[', ']');
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    return this.fn_add(value, ':');
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    return this.fn_add(value, '::');
+  },
+
+  combine(selector1, combinator, selector2) {
+    return this.fn_add(selector1.str)
+      .fn_add(combinator, ' ', ' ')
+      .fn_add(selector2.str);
+  },
+
+  stringify() {
+    return this.str.map((x) => [x.pre, x.e, x.suf].join('')).join('');
   },
 };
-
 
 module.exports = {
   Rectangle,

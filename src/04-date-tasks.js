@@ -19,8 +19,8 @@
  *    'Tue, 26 Jan 2016 13:48:02 GMT' => Date()
  *    'Sun, 17 May 1998 03:00:00 GMT+01' => Date()
  */
-function parseDataFromRfc2822(/* value */) {
-  throw new Error('Not implemented');
+function parseDataFromRfc2822(value) {
+  return new Date(value);
 }
 
 /**
@@ -34,8 +34,8 @@ function parseDataFromRfc2822(/* value */) {
  *    '2016-01-19T16:07:37+00:00'    => Date()
  *    '2016-01-19T08:07:37Z' => Date()
  */
-function parseDataFromIso8601(/* value */) {
-  throw new Error('Not implemented');
+function parseDataFromIso8601(value) {
+  return new Date(value);
 }
 
 
@@ -53,8 +53,8 @@ function parseDataFromIso8601(/* value */) {
  *    Date(2012,1,1)    => true
  *    Date(2015,1,1)    => false
  */
-function isLeapYear(/* date */) {
-  throw new Error('Not implemented');
+function isLeapYear(date) {
+  return new Date(date.getYear() + 1900, 1, 29).getMonth() === 1;
 }
 
 
@@ -73,8 +73,18 @@ function isLeapYear(/* date */) {
  *    Date(2000,1,1,10,0,0),  Date(2000,1,1,10,0,0,250)     => "00:00:00.250"
  *    Date(2000,1,1,10,0,0),  Date(2000,1,1,15,20,10,453)   => "05:20:10.453"
  */
-function timeSpanToString(/* startDate, endDate */) {
-  throw new Error('Not implemented');
+function timeSpanToString(startDate, endDate) {
+  let seconds = endDate - startDate;
+  const fn = (k, l = 2) => {
+    const r = ['00', seconds % k].join('');
+    seconds = Math.floor(seconds / k);
+    return r.substr(-1 * l);
+  };
+  const ms = fn(1000, 3);
+  const s = fn(60);
+  const m = fn(60);
+  const h = fn(60);
+  return [h, ':', m, ':', s, '.', ms].join('');
 }
 
 
@@ -94,8 +104,11 @@ function timeSpanToString(/* startDate, endDate */) {
  *    Date.UTC(2016,3,5,18, 0) => Math.PI
  *    Date.UTC(2016,3,5,21, 0) => Math.PI/2
  */
-function angleBetweenClockHands(/* date */) {
-  throw new Error('Not implemented');
+function angleBetweenClockHands(d) {
+  const h = (d.getHours() + d.getTimezoneOffset() / 60) % 12;
+  const m = d.getMinutes();
+  const a = Math.abs(h * 30 + m / 2 - m * 6);
+  return (Math.PI * ((a > 180) ? 360 - a : a)) / 180;
 }
 
 
